@@ -1,0 +1,147 @@
+let cl = console.log;
+const backdrop = document.getElementById('backdrop');
+const addMovie = document.getElementById('addMovie');
+const model = document.getElementById('model');
+const movieAdd = document.getElementById('movieAdd');
+const myclose = Array.from(document.querySelectorAll('.myclose'));
+const update = document.getElementById('update');
+const deleteMovie = document.getElementById('deleteMovie');
+let movieArray = [];
+
+const EditHandler = (ele) => {
+    model.classList.toggle('visible');
+    backdrop.classList.toggle('visible');
+    update.style.display = "inline-block";
+    movieAdd.style.display = "none";
+    getId = ele.getAttribute('data-id');
+    cl(getId);
+    localStorage.setItem('movieId', getId);
+    let movieData = retriveLocalData();
+    let obj = movieData.find((eve) => {
+        return eve.id === getId;
+    })
+    cl(obj);
+    title.value = obj.title;
+    image.value = obj.image;
+    rating.value = obj.rating;
+}
+
+const deleteData = () => {
+    let getId = localStorage.getItem('movieId');
+    cl(getId);
+    let localdata = retriveLocalData();
+    let data = localdata.filter((ele) => {
+        return ele.id != getId;
+    });
+    cl(data);
+    templating(data);
+    localStorage.setItem('localMovie', JSON.stringify(data));
+    $('#exampleModal').modal('hide');
+}
+
+
+const backdroptoggle = () => {
+    backdrop.classList.toggle('visible');
+}
+
+const toggleMovie = () => {
+    model.classList.toggle('visible');
+    backdroptoggle();
+
+}
+const templating = () => {
+    let template = "";
+    movieArray.forEach((eve) => {
+        template += `<div class="col-sm-4 mt-5">
+        <div class="card shadow">
+            <div class="card-body">
+                <img src="${eve.url}" alt="image" class="img-fluid">
+                <p class="title">${eve.title}</p>
+                <p class="rating">${eve.rating}</p>
+                <button class="btn btn-primary" data-id=${eve.id} onclick ="EditHandler(this)">EditMovie</button>
+                <button class="btn btn-danger" data-id=${eve.id} onclick="modalHandler(this)">DeleteMovie</button>
+            </div>
+        </div>
+    </div>`
+    });
+    document.getElementById('movieInfo').innerHTML = template;
+    title.value = "";
+    image.value = "";
+    rating.value = "";
+    //form.reset();
+}
+
+const movieHandler = (e) => {
+    e.preventDefault();
+
+    // if(localStorage.getItem('localMovie')){
+    // movieArray = retriveLocalData();
+    // }
+    let obj = {
+        title: title.value,
+        url: image.value,
+        rating: rating.value,
+        id: uuid(),
+    }
+    movieArray.push(obj);
+    cl(movieArray);
+    localStorage.setItem('localMovie', JSON.stringify(movieArray));
+    templating(movieArray);
+    form.reset();
+}
+
+const updateMovie = () => {
+    let getId = localStorage.getItem('movieId');
+    let localdata = retriveLocalData();
+    localdata.forEach((event) => {
+        if (event.id === getId) {
+            event.title = title.value;
+            event.image = image.value;
+            event.rating = rating.value;
+        }
+    })
+    cl(localdata);
+    cl(templating(localdata));
+    localStorage.setItem('localMovie', JSON.stringify(localdata));
+    localStorage.removeItem('movieId');
+    cl(getId);
+    update.style.display = "none";
+    model.classList.toggle('visible');
+    backdrop.classList.toggle('visible');
+    //form.reset();
+}
+
+movieAdd.addEventListener('click', movieHandler);
+myclose.forEach((eve) => {
+    eve.addEventListener('click', toggleMovie);
+});
+backdrop.addEventListener('click', toggleMovie);
+addMovie.addEventListener('click', toggleMovie);
+
+update.addEventListener('click', updateMovie);
+
+deleteMovie.addEventListener('click', deleteData);
+
+function retriveLocalData() {
+    return JSON.parse(localStorage.getItem('localMovie'));
+
+}
+movieArray = retriveLocalData();
+templating(movieArray);
+
+function uuid() {
+    var dt = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = (dt + Math.random() * 16) % 16 | 0;
+        dt = Math.floor(dt / 16);
+        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    return uuid;
+}
+
+function modalHandler(ele) {
+    let getId = ele.getAttribute('data-id');
+    cl(getId);
+    localStorage.setItem('movieId', getId);
+    $('#exampleModal').modal();
+}
